@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby  :
+
+machines = {
+  "maquina1" => {"memory" => "1024", "cpu" => "2", "image" => "bento/centos-7"}
+}
+
+Vagrant.configure("2") do |config|
+
+  machines.each do |name, conf|
+    config.vm.define "#{name}" do |machine|
+      machine.vm.box = "#{conf["image"]}"
+      machine.vm.hostname = "#{name}.anteros.com.br"
+      machine.vm.provider "virtualbox" do |vb|
+        vb.name = "#{name}"
+        vb.memory = conf["memory"]
+        vb.cpus = conf["cpu"]
+        vb.customize ["modifyvm", :id, "--groups", "/Docker-Lab"]
+      end
+      machine.vm.provision "shell", path: "docker.sh"
+      machine.vm.provision "shell", inline: "sudo systemctl start docker && sudo systemctl enable docker"
+    end
+  end
+end
